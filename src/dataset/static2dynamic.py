@@ -37,7 +37,7 @@ class Pedar_Dataset_static2dynamic(Dataset):
 
         return static_pressure, dynamic_pressure
     
-    def load_foot_mask(self, l_mask_path: str = 'config/left_foot_mask.png'):
+    def load_foot_mask(self, l_mask_path: str = 'data/processed/left_foot_mask.png'):
         # load foot masks
         l_img = Image.open(l_mask_path)
         r_img = ImageOps.mirror(l_img)
@@ -59,13 +59,13 @@ class Pedar_Dataset_static2dynamic(Dataset):
         r_pedar = np.zeros(self.r_mask.shape)
 
         for idx, value in enumerate(arr):
-            if idx <= 98:
+            if idx < 99:
                 # filling left foot area
-                l_pedar[self.l_index[idx]] = value * self.sense_range
+                l_pedar[self.l_index[idx]] = value
 
             else:
                 # filling right foot area
-                r_pedar[self.r_index[idx]] = value * self.sense_range
+                r_pedar[self.r_index[idx]] = value
 
         # plot heatmap
         if plot:

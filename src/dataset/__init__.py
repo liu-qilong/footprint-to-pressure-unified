@@ -1,4 +1,4 @@
-from . import static2dynamic
+from . import static2dynamic, footprint2pressure
 
 from src.tool.registry import DATASET_REGISTRY
 from torch.utils.data import Dataset

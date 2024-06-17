@@ -37,34 +37,35 @@ class Pedar_Dataset_static2dynamic(Dataset):
 
         return static_pressure, dynamic_pressure
     
-    def draw_heatmap(self, arr: np.array, l_mask_path: str = 'config/left_foot_mask.png', plot: bool = True, vmin: float = 0.0, vmax: float = 600.0):
+    def load_foot_mask(self, l_mask_path: str = 'config/left_foot_mask.png'):
         # load foot masks
         l_img = Image.open(l_mask_path)
         r_img = ImageOps.mirror(l_img)
 
-        l_mask = np.array(l_img).astype(np.float64)
-        r_mask = np.array(r_img).astype(np.float64)
+        self.l_mask = np.array(l_img).astype(np.float64)
+        self.r_mask = np.array(r_img).astype(np.float64)
 
         # detect pixels of area no.1~197 and store the corresponding indexes
-        l_index = {}
-        r_index = {}
+        self.l_index = {}
+        self.r_index = {}
 
-        for n in range(0, 198):
-            l_index[n] = np.where(l_mask == n + 1)
-            r_index[n + 99] = np.where(r_mask == n + 1)
-
+        for n in range(0, 99):
+            self.l_index[n] = np.where(self.l_mask == n + 1)
+            self.r_index[n + 99] = np.where(self.r_mask == n + 1)
+    
+    def draw_heatmap(self, arr: np.array, plot: bool = True, vmin: float = 0.0, vmax: float = 600.0):
         # create left and right foot heatmap
-        l_pedar = np.zeros(l_mask.shape)
-        r_pedar = np.zeros(r_mask.shape)
+        l_pedar = np.zeros(self.l_mask.shape)
+        r_pedar = np.zeros(self.r_mask.shape)
 
         for idx, value in enumerate(arr):
-            if idx <= 99:
+            if idx <= 98:
                 # filling left foot area
-                l_pedar[l_index[idx]] = value * self.sense_range
+                l_pedar[self.l_index[idx]] = value * self.sense_range
 
             else:
                 # filling right foot area
-                r_pedar[r_index[idx]] = value * self.sense_range
+                r_pedar[self.r_index[idx]] = value * self.sense_range
 
         # plot heatmap
         if plot:

@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image, ImageOps
 from matplotlib import pyplot as plt
 
-def draw_heatmap(arr: np.array, l_mask_path: str = 'data/processed/left_foot_mask.png', plot: bool = True, vmin: float = 0.0, vmax: float = 600.0):
+def draw_heatmap(arr: np.array, l_mask_path: str = 'data/processed/left_foot_mask.png', plot: bool = True, vmin: float = 0.0, vmax: float = 600.0, **kwargs):
     # load foot masks
     l_img = Image.open(l_mask_path)
     r_img = ImageOps.mirror(l_img)
@@ -35,12 +35,12 @@ def draw_heatmap(arr: np.array, l_mask_path: str = 'data/processed/left_foot_mas
     if plot:
         fig, axs = plt.subplots(1, 2)
         
-        im = axs[0].imshow(l_pedar, vmin=vmin, vmax=vmax)
+        im = axs[0].imshow(l_pedar, vmin=vmin, vmax=vmax, **kwargs)
         axs[0].set_title('left')
         axs[0].axis('off')
         fig.colorbar(im, ax=axs[0])
 
-        im = axs[1].imshow(r_pedar, vmin=vmin, vmax=vmax)
+        im = axs[1].imshow(r_pedar, vmin=vmin, vmax=vmax, **kwargs)
         axs[1].set_title('right')
         axs[1].axis('off')
         fig.colorbar(im, ax=axs[1])

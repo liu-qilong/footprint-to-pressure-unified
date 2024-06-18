@@ -116,14 +116,15 @@ class BasicTrainScript():
         # print and save logs
         epoch = self.logs['epoch'][-1]
 
-        # save logs, model, and optimizer if test loss is improved
+        # save logs
+        pd.DataFrame(self.logs).to_csv(Path(self.opt.path) / 'logs.csv', index=False)
+
+        # save model and optimizer if test loss is improved
         if epoch == 0:
             is_improved = True
         else:
             is_improved = self.logs['test_loss'][-1] < min(self.logs['test_loss'][:-1])
 
         if is_improved and (epoch % self.opt.save_interval == 0 or epoch == self.opt.optimizer.epochs - 1):
-            # torch.save(logs, Path(path) / 'logs.pth')
-            torch.save(self.logs, Path(self.opt.path) / 'logs.pth')
             torch.save(self.model.state_dict(), Path(self.opt.path) / 'model.pth')
             torch.save(self.optimizer.state_dict(), Path(self.opt.path) / 'optimizer.pth')

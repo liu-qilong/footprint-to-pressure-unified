@@ -13,8 +13,8 @@ class Pedar_Dataset_static2dynamic(Dataset):
     def __init__(
             self,
             device: str,
-            pedar_static: str,
-            pedar_dynamic: str,
+            pedar_static_path: str,
+            pedar_dynamic_path: str,
             sense_range: float = 600,
             dtype = torch.float32,
             transform = None,
@@ -22,8 +22,8 @@ class Pedar_Dataset_static2dynamic(Dataset):
             ):
         self.device = device
 
-        self.pedar_static = pd.read_pickle(pedar_static)
-        self.pedar_dynamic = pd.read_pickle(pedar_dynamic)
+        self.pedar_static = pd.read_pickle(pedar_static_path)
+        self.pedar_dynamic = pd.read_pickle(pedar_dynamic_path)
         self.index = self.pedar_static.index
         
         self.dtype = dtype

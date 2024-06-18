@@ -5,16 +5,16 @@ from src.tool.registry import MODEL_REGISTRY
 
 @MODEL_REGISTRY.register()
 class MLP(nn.Module):
-    def __init__(self, device, img_width: int = 10):
+    def __init__(self, device, img_size: int = 10):
         super().__init__()
         self.device = device
-        self.img_width = img_width
+        self.img_size = img_size
         
-        self.position_embedding = nn.Embedding(99, int(self.img_width * self.img_width / 2))
-        self.young_embedding = nn.Linear(1, int(self.img_width * self.img_width / 2))
+        self.position_embedding = nn.Embedding(99, int(self.img_size * self.img_size / 2))
+        self.young_embedding = nn.Linear(1, int(self.img_size * self.img_size / 2))
 
         self.model = nn.Sequential(
-            nn.Linear(self.img_width * self.img_width * 2, 256),
+            nn.Linear(self.img_size * self.img_size * 2, 256),
             nn.Sigmoid(),
             nn.Linear(256, 512),
             nn.Sigmoid(),
@@ -32,7 +32,7 @@ class MLP(nn.Module):
         img_stack, young = x
         
         # reshape img_stack
-        infer_shape = img_stack.shape[:-2] + (self.img_width * self.img_width,)  # e.g. (..., 198, 10, 10) -> (..., 198, 100)
+        infer_shape = img_stack.shape[:-2] + (self.img_size * self.img_size,)  # e.g. (..., 198, 10, 10) -> (..., 198, 100)
         img_stack = img_stack.reshape(infer_shape)
 
         # positional embedding

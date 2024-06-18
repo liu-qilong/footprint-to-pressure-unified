@@ -94,9 +94,6 @@ class BasicTrainScript():
         # turn on inference context manager
         with torch.inference_mode():
             for batch, (X, y) in enumerate(self.test_dataloader):
-                # send data to target device
-                X, y = X.to(self.device), y.to(self.device)
-
                 # forward pass
                 y_pred = self.model(X)
 

@@ -1,0 +1,37 @@
+train_script: 'BasicTrainScript'
+save_interval: 10
+device_select: 'auto'
+use_pretrain: False
+dataset:
+  name: 'Footprint2Pressure_Blend_SensorStack'
+  train_ratio: 0.8
+  args:
+    footprint_wrap_folder: 'data/processed/footprint-wrap/'
+    pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+    sense_range: 600
+    stack_range: 50
+    img_size: 10
+dataloader:
+  name: 'DataLoader'
+  args:
+    batch_size: 32
+    shuffle: True
+model:
+  name: 'MLP'
+  args:
+    img_size: 10
+loss:
+  name: 'MSELoss'
+  args: {}
+metric:
+  MAE:
+    name: 'L1Loss'
+    args: {}
+  MSE:
+    name: 'MSELoss'
+    args: {}
+optimizer: 
+  name: 'SGD'
+  epochs: 50
+  args:
+    lr: 0.1

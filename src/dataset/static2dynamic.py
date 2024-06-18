@@ -10,7 +10,18 @@ from src.tool.registry import DATASET_REGISTRY
 
 @DATASET_REGISTRY.register()
 class Pedar_Dataset_static2dynamic(Dataset):
-    def __init__(self, pedar_static: str, pedar_dynamic: str, sense_range: float = 600, dtype = torch.float32, transform = None, target_transform = None):
+    def __init__(
+            self,
+            device: str,
+            pedar_static: str,
+            pedar_dynamic: str,
+            sense_range: float = 600,
+            dtype = torch.float32,
+            transform = None,
+            target_transform = None,
+            ):
+        self.device = device
+
         self.pedar_static = pd.read_pickle(pedar_static)
         self.pedar_dynamic = pd.read_pickle(pedar_dynamic)
         self.index = self.pedar_static.index
@@ -35,7 +46,8 @@ class Pedar_Dataset_static2dynamic(Dataset):
         if self.target_transform:
             dynamic_pressure = self.target_transform(dynamic_pressure)
 
-        return static_pressure, dynamic_pressure
+        # remember to move data to device!
+        return static_pressure.to(self.device), dynamic_pressure.to(self.device)
     
     def load_foot_mask(self, l_mask_path: str = 'data/processed/left_foot_mask.png'):
         # load foot masks

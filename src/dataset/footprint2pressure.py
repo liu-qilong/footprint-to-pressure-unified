@@ -14,13 +14,16 @@ from src.tool.registry import DATASET_REGISTRY
 class Pedar_Dataset_footprint2pressure(Dataset):
     def __init__(
             self: str,
-            footprint_wrap_folder: str = '../../data/processed/footprint-wrap',
-            pedar_dynamic: str = '../../data/processed/pedar_dynamic.pkl',
-            l_mask_path: str = 'config/left_foot_mask.png',
+            device: str,
+            footprint_wrap_folder: str = 'data/processed/footprint-wrap',
+            pedar_dynamic: str = 'data/processed/pedar_dynamic.pkl',
+            l_mask_path: str = 'data/processed/left_foot_mask.png',
             sense_range: float = 600,
             stack_range: int = 50,
             dtype = torch.float32,
             ):
+        self.device = device
+
         self.footprint_wrap_folder = Path(footprint_wrap_folder)
         self.pedar_dynamic = pd.read_pickle(pedar_dynamic)
         self.dtype = dtype
@@ -118,4 +121,5 @@ class Pedar_Dataset_footprint2pressure(Dataset):
         r_stack = get_img_stack('R')
         img_stack = torch.concat([l_stack, r_stack])
 
-        return (img_stack, blend_young), blend_pedar
+        # remember to move data to device!
+        return (img_stack.to(self.device), blend_young.to(self.device)), blend_pedar.to(self.device)

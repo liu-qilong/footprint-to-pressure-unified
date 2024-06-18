@@ -40,14 +40,14 @@ class BasicTrainScript():
             self.logs[key] = []
 
     def load_data(self):
-        self.full_dataset = DATASET_REGISTRY[self.opt.dataset.name](**self.opt.dataset.args)
+        self.full_dataset = DATASET_REGISTRY[self.opt.dataset.name](device = self.device, **self.opt.dataset.args)
         self.train_dataset, self.test_dataset = random_split(self.full_dataset, [self.opt.dataset.train_ratio, 1 - self.opt.dataset.train_ratio])
 
         self.train_dataloader = DATALOADER_REGISTRY[self.opt.dataloader.name](self.train_dataset, **self.opt.dataloader.args)
         self.test_dataloader = DATALOADER_REGISTRY[self.opt.dataloader.name](self.test_dataset, **self.opt.dataloader.args)
 
     def train_prep(self):
-        self.model = MODEL_REGISTRY[self.opt.model.name](**self.opt.model.args).to(self.device)
+        self.model = MODEL_REGISTRY[self.opt.model.name](device=self.device, **self.opt.model.args)
         self.loss_fn = LOSS_REGISTRY[self.opt.loss.name](**self.opt.loss.args)
         self.optimizer = OPTIMIZER_REGISTRY[self.opt.optimizer.name](**self.opt.optimizer.args, params=self.model.parameters())
 
@@ -68,12 +68,9 @@ class BasicTrainScript():
         self.model.train()
         train_loss = 0
 
-        for batch, (X, y) in enumerate(self.train_dataloader):
-            # send data to device
-            X, y = X.to(self.device), y.to(self.device)
-
+        for batch, (x, y) in enumerate(self.train_dataloader):
             # forward pass
-            y_pred = self.model(X)
+            y_pred = self.model(x)
             loss = self.loss_fn(y_pred, y)
             train_loss += loss.item() 
 
@@ -130,6 +127,6 @@ class BasicTrainScript():
 
         if is_improved and (epoch % self.opt.save_interval == 0 or epoch == self.opt.optimizer.epochs - 1):
             # torch.save(logs, Path(path) / 'logs.pth')
-            pd.DataFrame(self.logs).to_csv(Path(self.opt.path) / 'logs.csv', index=False)
+            torch.save(self.logs, Path(self.opt.path) / 'logs.pth')
             torch.save(self.model.state_dict(), Path(self.opt.path) / 'model.pth')
             torch.save(self.optimizer.state_dict(), Path(self.opt.path) / 'optimizer.pth')

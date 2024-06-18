@@ -18,7 +18,7 @@ class Footprint2Pressure(Dataset):
             footprint_wrap_folder: str = 'data/processed/footprint-wrap',
             pedar_dynamic_path: str = 'data/processed/pedar_dynamic.pkl',
             l_mask_path: str = 'data/processed/left_foot_mask.png',
-            sense_range: float = 600,
+            sense_range: float = 600,  # kPa
             stack_range: int = 50,
             img_size: int = 10,
             dtype = torch.float32,

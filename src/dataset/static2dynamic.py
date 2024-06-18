@@ -15,7 +15,7 @@ class Pedar_Dataset_static2dynamic(Dataset):
             device: str,
             pedar_static_path: str,
             pedar_dynamic_path: str,
-            sense_range: float = 600,
+            sense_range: float = 600,  # kPa
             dtype = torch.float32,
             transform = None,
             target_transform = None,

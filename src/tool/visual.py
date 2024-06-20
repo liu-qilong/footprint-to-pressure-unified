@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image, ImageOps
 from matplotlib import pyplot as plt
 
-def draw_heatmap(arr: np.array, l_mask_path: str = 'data/processed/left_foot_mask.png', plot: bool = True, vmin: float = 0.0, vmax: float = 600.0, **kwargs):
+def draw_heatmap(arr: np.array, l_mask_path: str = 'data/processed/left_foot_mask.png', vmin: float = 0.0, vmax: float = 600.0, plot: bool = True, **kwargs):
     # load foot masks
     l_img = Image.open(l_mask_path)
     r_img = ImageOps.mirror(l_img)

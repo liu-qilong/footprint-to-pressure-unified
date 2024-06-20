@@ -9,7 +9,7 @@ dataset:
     pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
     sense_range: 600
     stack_range: 50
-    img_size: 1
+    img_size: 10
 dataloader:
   name: 'DataLoader'
   args:
@@ -18,7 +18,7 @@ dataloader:
 model:
   name: 'MLP_cos_emb'
   args:
-    img_size: 1
+    img_size: 10
     pos_emb_len: 512
     young_emb_len: 128
     hidden: 2048

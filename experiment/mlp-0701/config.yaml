@@ -1,0 +1,40 @@
+train_script: 'BasicTrainScript'
+device_select: 'auto'
+use_pretrain: False
+dataset:
+  name: 'Footprint2Pressure_Blend_SensorPatch'
+  train_ratio: 0.8
+  args:
+    footprint_wrap_folder: 'data/processed/footprint-wrap/'
+    pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+    l_mask_path: 'data/processed/left_foot_mask.png'
+    sense_range: 600
+    stack_range: 50
+    img_size: 10
+dataloader:
+  name: 'DataLoader'
+  args:
+    batch_size: 32
+    shuffle: True
+model:
+  name: 'MLP_cos_emb'
+  args:
+    img_size: 10
+    pos_emb_len: 512
+    young_emb_len: 128
+    hidden: 2048
+loss:
+  name: 'MSELoss'
+  args: {}
+metric:
+  MAE:
+    name: 'L1Loss'
+    args: {}
+  MSE:
+    name: 'MSELoss'
+    args: {}
+optimizer: 
+  name: 'SGD'
+  epochs: 50
+  args:
+    lr: 0.1

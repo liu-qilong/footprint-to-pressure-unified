@@ -27,10 +27,10 @@ class BasicTrainScript():
 
         # init logs dict
         self.logs = {
-            'epoch': [],
-            'train_loss': [],
-            'test_loss': [],
-            'train_std': [],
+            'epoch': [0,],
+            'train_loss': [0,],
+            'test_loss': [0,],
+            'train_std': [0,],
         }
 
         # init metric dict
@@ -38,7 +38,7 @@ class BasicTrainScript():
 
         for key, value in opt.metric.items():
             self.metric_dict[key] = METRIC_REGISTRY[value.name](**value.args)
-            self.logs[key] = []
+            self.logs[key] = [0,]
 
     def load_data(self):
         self.full_dataset = DATASET_REGISTRY[self.opt.dataset.name](device = self.device, **self.opt.dataset.args)
@@ -59,18 +59,19 @@ class BasicTrainScript():
     def train_loop(self):
         for epoch in (pdar := tqdm(range(self.opt.optimizer.epochs))):
             self.logs['epoch'].append(epoch)
-            self._train_step()
+            self._train_step(pdar)
             self._test_step()
             self._log_step()
-            pdar.set_description(f'epoch {epoch} | train_loss {self.logs["train_loss"][-1]:.4f} | test_loss {self.logs["test_loss"][-1]:.4f} |  train_std {self.logs["train_std"][-1]:.4f}')
 
-    def _train_step(self):
+    def _train_step(self, pdar):
         # put model in train mode
         self.model.train()
         train_loss = 0
         train_std = 0
 
         for batch, (x, y) in enumerate(self.train_dataloader):
+            pdar.set_description(f'epoch {self.logs["epoch"][-1]} batch {batch} | train_loss {self.logs["train_loss"][-1]:.4f} | test_loss {self.logs["test_loss"][-1]:.4f} | train_std {self.logs["train_std"][-1]:.4f}')
+
             # forward pass
             y_pred = self.model(x)
             loss = self.loss_fn(y_pred, y)

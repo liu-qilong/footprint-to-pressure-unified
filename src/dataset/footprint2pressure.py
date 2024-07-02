@@ -249,4 +249,4 @@ class Footprint2Pressure_Blend_SensorPatch(Footprint2Pressure_Blend):
             torch.tensor(img_patch, dtype=self.dtype).unsqueeze(0)
             )[0]
         
-        return (img_patch.to(self.device), blend_young.to(self.device)), blend_pedar.to(self.device)
+        return (img_patch.to(self.device), torch.tensor(sensor_id, dtype=self.dtype).to(self.device), blend_young.to(self.device)), blend_pedar.to(self.device)

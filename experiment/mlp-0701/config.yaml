@@ -14,10 +14,10 @@ dataset:
 dataloader:
   name: 'DataLoader'
   args:
-    batch_size: 32
+    batch_size: 1024
     shuffle: True
 model:
-  name: 'MLP_cos_emb'
+  name: 'PatchMLP_cos_emb'
   args:
     img_size: 10
     pos_emb_len: 512
@@ -38,3 +38,6 @@ optimizer:
   epochs: 50
   args:
     lr: 0.1
+
+# index & retrieve data points down to patch level, rather than subject-level as in mlp-0620/, to increase the randomness of data and avoid averaging. however, this makes the training much slower, since for each batch we need to load a lot of different footprint images from the disk.
+# -- 2 Jul, 2024

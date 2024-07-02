@@ -92,20 +92,34 @@ class MLP_cos_emb(nn.Module):
         img_stack = img_stack.reshape(infer_shape)
 
         # positional embedding
-        # pos_arr = torch.concat([
-        #     torch.arange(99.0, device=self.device),
-        #     torch.arange(99.0, device=self.device),
-        #     ], dim=-1,
-        # )
         pos_arr = torch.arange(198.0, device=self.device)
-        pos_emb = self.position_embedding(pos_arr)
+        pos_emb = self.position_embedding(pos_arr)  # e.g. (198,) -> (198, 50)
         pos_emb = pos_emb.expand(img_stack.shape[:-1] + (-1,))  # e.g. (198, 50) -> (..., 198, 50)
 
         # youngs' modulus embedding
-        young_emb = self.young_embedding(young)
-        young_emb = young_emb.unsqueeze(-2).expand(img_stack.shape[:-1] + (-1,))  # e.g. (50,) -> (..., 198, 50)
+        young_emb = self.young_embedding(young)  # e.g. (50,) -> (..., 50)
+        young_emb = young_emb.unsqueeze(-2).expand(img_stack.shape[:-1] + (-1,))  # e.g. (..., 50) -> (..., 198, 50)
 
         x = torch.cat([img_stack, pos_emb, young_emb], dim=-1)
-        # x = torch.cat([pos_emb,], dim=-1)
+        
+        return self.mlp(x).squeeze(-1)
+    
+
+@MODEL_REGISTRY.register()
+class PatchMLP_cos_emb(MLP_cos_emb):
+    def forward(self, x):
+        img_patch, sensor_id, young = x
+        
+        # reshape img_stack
+        infer_shape = img_patch.shape[:-2] + (self.img_size * self.img_size,)  # e.g. (..., 10, 10) -> (..., 100)
+        img_patch = img_patch.reshape(infer_shape)
+
+        # positional embedding
+        pos_emb = self.position_embedding(sensor_id)  # e.g. (...,) -> (..., 50)
+
+        # youngs' modulus embedding
+        young_emb = self.young_embedding(young)  # (50,) -> (..., 50)
+
+        x = torch.cat([img_patch, pos_emb, young_emb], dim=-1)
         
         return self.mlp(x).squeeze(-1)

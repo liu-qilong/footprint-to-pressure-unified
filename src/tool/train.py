@@ -1,7 +1,8 @@
 import torch
 from torch.utils.data import random_split
-
 import pandas as pd
+
+import time
 from tqdm.auto import tqdm
 from pathlib import Path
 
@@ -28,9 +29,11 @@ class BasicTrainScript():
         # init logs dict
         self.logs = {
             'epoch': [0,],
+            'time': [0,],
             'train_loss': [0,],
             'test_loss': [0,],
-            'train_std': [0,],
+            'pred_std': [0,],
+            'gt_std': [0,],
         }
 
         # init metric dict
@@ -57,8 +60,12 @@ class BasicTrainScript():
             self.optimizer.load_state_dict(torch.load(Path(self.opt.path) / 'optimizer.pth'))
 
     def train_loop(self):
+        self.start_time = time.time()
+
         for epoch in (pdar := tqdm(range(self.opt.optimizer.epochs))):
             self.logs['epoch'].append(epoch)
+            self.logs['time'].append(time.strftime('%Y/%m/%d %H:%M:%S UTC', time.gmtime(time.time())))
+
             self._train_step(pdar)
             self._test_step()
             self._log_step()
@@ -67,16 +74,21 @@ class BasicTrainScript():
         # put model in train mode
         self.model.train()
         train_loss = 0
-        train_std = 0
 
         for batch, (x, y) in enumerate(self.train_dataloader):
-            pdar.set_description(f'epoch {self.logs["epoch"][-1]} batch {batch} | train_loss {self.logs["train_loss"][-1]:.4f} | test_loss {self.logs["test_loss"][-1]:.4f} | train_std {self.logs["train_std"][-1]:.4f}')
+            # progress bar update
+            pdar.set_description(
+                f'batch {batch} of epoch {self.logs["epoch"][-1]} | '\
+                f'time {self.logs["time"][-1]} | '\
+                f'train_loss {self.logs["train_loss"][-1]:.4f} '\
+                f'test_loss {self.logs["test_loss"][-1]:.4f} | '\
+                f'pred_std {self.logs["pred_std"][-1]:.4f} '\
+                f'gt_std {self.logs["gt_std"][-1]:.4f}')
 
             # forward pass
             y_pred = self.model(x)
             loss = self.loss_fn(y_pred, y)
-            train_loss += loss.item() 
-            train_std += y_pred.std().item()
+            train_loss += loss.item()
 
             # loss backward
             self.optimizer.zero_grad()
@@ -85,12 +97,13 @@ class BasicTrainScript():
 
         # append loss
         self.logs['train_loss'].append(train_loss / len(self.train_dataloader))
-        self.logs['train_std'].append(train_std / len(self.train_dataloader))
 
     def _test_step(self):
         # put model in eval mode
         self.model.eval()
         test_loss = 0
+        pred_std = 0
+        gt_std = 0
 
         for key, metric_fn in self.metric_dict.items():
             self.logs[key].append(0)
@@ -105,12 +118,19 @@ class BasicTrainScript():
                 loss = self.loss_fn(y_pred, y)
                 test_loss += loss.item()
 
+                # std calculation
+                pred_std += y_pred.std().item()
+                gt_std += y.std().item()
+
                 # metric calculation
                 for key, metric_fn in self.metric_dict.items():
                     self.logs[key][-1] += metric_fn(y, y_pred).item()
 
         # append loss & metrics
         self.logs['test_loss'].append(test_loss / len(self.test_dataloader))
+        self.logs['pred_std'].append(pred_std / len(self.train_dataloader))
+        self.logs['gt_std'].append(gt_std / len(self.train_dataloader))
+
 
         for key, metric_fn in self.metric_dict.items():
             self.logs[key][-1] = self.logs[key][-1] / len(self.test_dataloader)

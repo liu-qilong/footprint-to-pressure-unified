@@ -14,7 +14,7 @@ dataset:
 dataloader:
   name: 'DataLoader'
   args:
-    batch_size: 1024
+    batch_size: 128
     shuffle: True
 model:
   name: 'PatchMLP_cos_emb'
@@ -22,7 +22,7 @@ model:
     img_size: 10
     pos_emb_len: 512
     young_emb_len: 128
-    hidden: 2048
+    hidden: 1024
 loss:
   name: 'MSELoss'
   args: {}
@@ -39,5 +39,6 @@ optimizer:
   args:
     lr: 0.1
 
-# index & retrieve data points down to patch level, rather than subject-level as in mlp-0620/, to increase the randomness of data and avoid averaging. however, this makes the training much slower, since for each batch we need to load a lot of different footprint images from the disk.
+# Index & retrieve data points down to patch level, rather than subject-level as in mlp-0620/, to increase the randomness of data and avoid averaging.
+# However, this makes the training much slower, since for each batch we need to load a lot of different footprint images from the disk. This was solved by pre-loading & slicing all footprints at the dataset loading stage.
 # -- 2 Jul, 2024

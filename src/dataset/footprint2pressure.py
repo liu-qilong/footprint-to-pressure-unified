@@ -206,14 +206,31 @@ class Footprint2Pressure_Blend_SensorPatch(Footprint2Pressure_Blend):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
+        # transformer for resizing images
         self.resize = transforms.Resize((self.img_size, self.img_size))
 
+        # data indexing and footprint image preloading
         self.index = []
+        self.subject2img_stack = {}
 
         for subject in self.pedar_dynamic.index.get_level_values(1).drop_duplicates():
-            if os.path.isfile(self.footprint_wrap_folder / f'{subject}-L.jpg'):
+            if os.path.isfile(self.footprint_wrap_folder / f'{subject}-L.jpg') and os.path.isfile(self.footprint_wrap_folder / f'{subject}-R.jpg'):
                 for patch_id in range(1, 199):
                     self.index.append((subject, patch_id))
+
+                # pre-load and slice the footprint images
+                def get_img_stack(foot: str):
+                    img = Image.open(self.footprint_wrap_folder / f'{subject}-{foot}.jpg')
+                    img_arr = np.mean(1 - np.array(img).astype(np.float64) / 255, axis=-1)
+                    img_stack = img_arr[self.x_grid[foot], self.y_grid[foot]]
+                    img_stack = torch.tensor(img_stack, dtype=self.dtype)
+                    img_stack = self.resize(img_stack)
+                    return img_stack
+                
+                l_stack = get_img_stack('L')  # e.g. (99, 10, 10)
+                r_stack = get_img_stack('R')  # e.g. (99, 10, 10)
+                img_stack = torch.concat([l_stack, r_stack])  # e.g. (198, 10, 10)
+                self.subject2img_stack[subject] = img_stack
     
     def __getitem__(self, index: int, blend_weight: np.array = None) -> tuple:
         subject, sensor_id = self.index[index]
@@ -234,19 +251,7 @@ class Footprint2Pressure_Blend_SensorPatch(Footprint2Pressure_Blend):
             dtype=self.dtype,
             )
         
-        # load footprint image and slice out the sensor-specific patch
-        if sensor_id < 99:
-            img = Image.open(self.footprint_wrap_folder / f'{subject}-L.jpg')
-            img_arr = np.mean(1 - np.array(img).astype(np.float64) / 255, axis=-1)
-            img_patch = img_arr[self.x_grid['L'][sensor_id - 1], self.y_grid['L'][sensor_id - 1]]
-
-        else:
-            img = Image.open(self.footprint_wrap_folder / f'{subject}-R.jpg')
-            img_arr = np.mean(1 - np.array(img).astype(np.float64) / 255, axis=-1)
-            img_patch = img_arr[self.x_grid['L'][sensor_id - 1 - 99], self.y_grid['L'][sensor_id - 1 - 99]]
-        
-        img_patch = self.resize(
-            torch.tensor(img_patch, dtype=self.dtype).unsqueeze(0)
-            )[0]
+        # get sensor-specific patch
+        img_patch = self.subject2img_stack[subject][sensor_id - 1]  # sensor_id starts from 1
         
         return (img_patch.to(self.device), torch.tensor(sensor_id, dtype=self.dtype).to(self.device), blend_young.to(self.device)), blend_pedar.to(self.device)

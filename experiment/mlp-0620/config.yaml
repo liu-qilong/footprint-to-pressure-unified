@@ -37,3 +37,13 @@ optimizer:
   epochs: 50
   args:
     lr: 0.1
+
+# Read through textbooks doesn't imply that I know anything about neural net. I didn't know that MLP could be so frightening before yesterday... Although I don't exactly remember what I do right to make it worked, I thought I did these things:
+# - Start very naively
+#   To make the whole stuff worked, I started from a series of very naive toy regression problems: `x -> x`, `x -> -x`, `x -> -x` with [[VaswaniAshish2017|positional encoding]], `index -> pressure`, `(index, young_modulus) -> pressure`, and eventually `(img_patch, index, young_modulus) -> pressure`. I worked step by step to ensure that I've got _truly verified components_ before I move to the next stage.
+# - _Scale and complexity do matters_
+#   When your network is not competence enough, it tends to output the _mean value_ to cheat the metric. See [machine learning - Training a neural network for regression always predicts the mean - Cross Validated](https://stats.stackexchange.com/a/519735).
+# - _Randomness do matters_
+#   I got a very very tiny dataset, and all the data samples looks quite similar since I decomposed the input to image patch level. In this case, be very careful to the fact that the model may be seeing the _same thing_ all the time and thus is very likely to be drawn to output the _mean value_.
+#   I temporally solved this by setting batch size to 1 image. However, computational efficiency is sacrificed. A more fundamental solution may be change the indexing of data from image level to image patch level.
+# -- 20 June, 2024

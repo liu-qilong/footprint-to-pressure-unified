@@ -82,10 +82,10 @@ class Footprint2Pressure(Dataset):
     def __len__(self):
         return len(self.index)
     
-    def __getitem__(self, index: int) -> tuple:
+    def __getitem__(self, idx: int) -> tuple:
         # get subject
-        material = self.index[index][0]
-        subject = self.index[index][1]
+        material = self.index[idx][0]
+        subject = self.index[idx][1]
         
         # weight blends young modulus & pedar arrays
         arr_pedar = self.pedar_dynamic.loc[material, subject].values / self.sense_range
@@ -126,8 +126,8 @@ class Footprint2Pressure_Blend(Footprint2Pressure):
             if os.path.isfile(self.footprint_wrap_folder / f'{subject}-L.jpg'):
                 self.index.append(subject)
     
-    def __getitem__(self, index: int, blend_weight: np.array = None) -> tuple:
-        subject = self.index[index]
+    def __getitem__(self, idx: int, blend_weight: np.array = None) -> tuple:
+        subject = self.index[idx]
 
         # blend weights
         if blend_weight is None:
@@ -165,13 +165,13 @@ class Footprint2Pressure_Blend_SensorStack(Footprint2Pressure_Blend):
         super().__init__(*args, **kwargs)
         self.resize = transforms.Resize((self.img_size, self.img_size))
 
-    def __getitem__(self, index: int, blend_weight: np.array = None) -> tuple:
+    def __getitem__(self, idx: int, blend_weight: np.array = None) -> tuple:
         if blend_weight is None:
             blend_weight = np.random.rand(5)
             blend_weight = blend_weight / blend_weight.sum()
 
         # get subject
-        subject = self.index[index]
+        subject = self.index[idx]
         
         # weight blends young modulus & pedar arrays
         arr_pedar = self.pedar_dynamic.loc[:, subject, :].values / self.sense_range
@@ -232,8 +232,8 @@ class Footprint2Pressure_Blend_SensorPatch(Footprint2Pressure_Blend):
                 img_stack = torch.concat([l_stack, r_stack])  # e.g. (198, 10, 10)
                 self.subject2img_stack[subject] = img_stack
     
-    def __getitem__(self, index: int, blend_weight: np.array = None) -> tuple:
-        subject, sensor_id = self.index[index]
+    def __getitem__(self, idx: int, blend_weight: np.array = None) -> tuple:
+        subject, sensor_id = self.index[idx]
         
         # blend weights
         if blend_weight is None:

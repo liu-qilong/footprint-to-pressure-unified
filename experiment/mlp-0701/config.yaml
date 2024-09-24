@@ -40,5 +40,8 @@ optimizer:
     lr: 0.1
 
 # Index & retrieve data points down to patch level, rather than subject-level as in mlp-0620/, to increase the randomness of data and avoid averaging.
-# However, this makes the training much slower, since for each batch we need to load a lot of different footprint images from the disk. This was solved by pre-loading & slicing all footprints at the dataset loading stage.
-# -- 2 Jul, 2024
+# However, this makes the training much slower, since for each batch we need to load a lot of different footprint images from the disk. This was partly solved by pre-loading & slicing all footprints at the dataset loading stage. However, it still didn't catch up with the approach that index & retrieve data points down to subject level with batch size 1.
+# -- 2 Jul 2024
+
+# Although in this example, the index down to patch approach is not as efficient as the index down to subject approach, it enables training with batch size != 1. This is an important experience gaining as in most of the cases setting batch size = 1 is not acceptable.
+# -- 24 Sep 2024

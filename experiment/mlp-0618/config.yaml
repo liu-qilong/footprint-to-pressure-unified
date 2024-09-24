@@ -13,7 +13,7 @@ dataset:
 dataloader:
   name: 'DataLoader'
   args:
-    batch_size: 1
+    batch_size: 32
     shuffle: True
 model:
   name: 'MLP_cos_emb'
@@ -37,3 +37,6 @@ optimizer:
   epochs: 50
   args:
     lr: 0.1
+
+# Setting a batch size of 32 doesn't work because the data samples are far too similar. The model is still likely to output the mean value. See experiment/mlp-0620/ for fixing.
+# -- 24 Sep 2024

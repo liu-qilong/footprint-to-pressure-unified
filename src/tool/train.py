@@ -146,3 +146,14 @@ class BasicTrainScript():
         if epoch == 0 or self.logs['test_loss'][-1] < min(self.logs['test_loss'][:-1]):
             torch.save(self.model.state_dict(), Path(self.opt.path) / 'model.pth')
             torch.save(self.optimizer.state_dict(), Path(self.opt.path) / 'optimizer.pth')
+
+
+@SCRIPT_REGISTRY.register()
+class TrainScript_SpecifyTrainTestDataset(BasicTrainScript):
+    """In BasicTrainScript, the train/test dataset are randomly splitted from the full dataset. Here, we load the train/test dataset with specific class names/arguments from self.opt instead."""
+    def load_data(self):
+        self.full_dataset = DATASET_REGISTRY[self.opt.dataset.name](device = self.device, **self.opt.dataset.args)
+        self.train_dataset, self.test_dataset = random_split(self.full_dataset, [self.opt.dataset.train_ratio, 1 - self.opt.dataset.train_ratio])
+
+        self.train_dataloader = DATALOADER_REGISTRY[self.opt.dataloader.name](self.train_dataset, **self.opt.dataloader.args)
+        self.test_dataloader = DATALOADER_REGISTRY[self.opt.dataloader.name](self.test_dataset, **self.opt.dataloader.args)

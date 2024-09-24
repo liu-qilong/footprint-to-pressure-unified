@@ -3,7 +3,7 @@ from torch import nn
 
 class PositionalEncoding(torch.nn.Module):
     def __init__(self, device, b: float = 1.25, l: int = 100) -> None:
-        super(PositionalEncoding, self).__init__()
+        super().__init__()
         self.device = device
         self.b = b
         self.l = l

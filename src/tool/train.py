@@ -9,7 +9,7 @@ from pathlib import Path
 from src.tool.registry import DATASET_REGISTRY, DATALOADER_REGISTRY, MODEL_REGISTRY, LOSS_REGISTRY, METRIC_REGISTRY, OPTIMIZER_REGISTRY, SCRIPT_REGISTRY
 
 @SCRIPT_REGISTRY.register()
-class BasicTrainScript():
+class TrainScrip_RandomSplit():
     def __init__(self, opt):
         self.opt = opt
         
@@ -149,11 +149,11 @@ class BasicTrainScript():
 
 
 @SCRIPT_REGISTRY.register()
-class TrainScript_SpecifyTrainTestDataset(BasicTrainScript):
-    """In BasicTrainScript, the train/test dataset are randomly splitted from the full dataset. Here, we load the train/test dataset with specific class names/arguments from self.opt instead."""
+class TrainScript_ExplicitSplit(TrainScrip_RandomSplit):
+    """In TrainScrip_RandomSplit, the train/test dataset are randomly splitted from the full dataset. Here, we load the train/test dataset with specific class names/arguments from self.opt instead."""
     def load_data(self):
-        self.full_dataset = DATASET_REGISTRY[self.opt.dataset.name](device = self.device, **self.opt.dataset.args)
-        self.train_dataset, self.test_dataset = random_split(self.full_dataset, [self.opt.dataset.train_ratio, 1 - self.opt.dataset.train_ratio])
-
+        self.train_dataset = DATASET_REGISTRY[self.opt.train_dataset.name](device = self.device, **self.opt.train_dataset.args)
         self.train_dataloader = DATALOADER_REGISTRY[self.opt.dataloader.name](self.train_dataset, **self.opt.dataloader.args)
+
+        self.test_dataset = DATASET_REGISTRY[self.opt.test_dataset.name](device = self.device, **self.opt.test_dataset.args)
         self.test_dataloader = DATALOADER_REGISTRY[self.opt.dataloader.name](self.test_dataset, **self.opt.dataloader.args)

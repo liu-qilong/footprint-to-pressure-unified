@@ -1,8 +1,8 @@
-train_script: 'BasicTrainScript'
+train_script: 'TrainScrip_RandomSplit'
 device_select: 'auto'
 use_pretrain: False
 dataset:
-  name: 'Footprint2Pressure_Blend_SensorPatch'
+  name: 'Footprint2Pressure_SensorPatch_Blend'
   train_ratio: 0.8
   args:
     footprint_wrap_folder: 'data/processed/footprint-wrap/'

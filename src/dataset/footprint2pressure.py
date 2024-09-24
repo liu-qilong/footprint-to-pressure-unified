@@ -87,7 +87,7 @@ class Footprint2Pressure(Dataset):
         material = self.index[idx][0]
         subject = self.index[idx][1]
         
-        # weight blends young modulus & pedar arrays
+        # get young modulus & pedar arrays
         arr_pedar = self.pedar_dynamic.loc[material, subject].values / self.sense_range
         pedar_t = torch.tensor(arr_pedar, dtype=self.dtype)
 
@@ -115,7 +115,7 @@ class Footprint2Pressure_Blend(Footprint2Pressure):
             'Poron': 0.33,
             'PElite': 1.11,
             'Lunalight': 5.88,
-            'Lunanastik': 0.71,
+            'Lunalastic': 0.71,
             'BF': 0.00,
         }
 
@@ -160,7 +160,50 @@ class Footprint2Pressure_Blend(Footprint2Pressure):
     
 
 @DATASET_REGISTRY.register()
-class Footprint2Pressure_Blend_SensorStack(Footprint2Pressure_Blend):
+class Footprint2Pressure_SensorStack(Footprint2Pressure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # youngs modulus (MPa)
+        self.material_youngs = {
+            'Poron': 0.33,
+            'PElite': 1.11,
+            'Lunalight': 5.88,
+            'Lunalastic': 0.71,
+            'BF': 0.00,
+        }
+
+        self.resize = transforms.Resize((self.img_size, self.img_size))
+
+    def __getitem__(self, idx: int) -> tuple:
+        # get subject
+        material = self.index[idx][0]
+        young = torch.tensor(self.material_youngs[material], dtype=self.dtype)
+        subject = self.index[idx][1]
+        
+        # get young modulus & pedar arrays
+        arr_pedar = self.pedar_dynamic.loc[material, subject].values / self.sense_range
+        pedar_t = torch.tensor(arr_pedar, dtype=self.dtype)
+
+        # load footprint image and slice as per-sensor stacks
+        def get_img_stack(foot: str):
+            img = Image.open(self.footprint_wrap_folder / f'{subject}-{foot}.jpg')
+            img_arr = np.mean(1 - np.array(img).astype(np.float64) / 255, axis=-1)
+            img_stack = img_arr[self.x_grid[foot], self.y_grid[foot]]
+            img_stack = torch.tensor(img_stack, dtype=self.dtype)
+            img_stack = self.resize(img_stack)
+            return img_stack
+        
+        l_stack = get_img_stack('L')
+        r_stack = get_img_stack('R')
+        img_stack = torch.concat([l_stack, r_stack])
+
+        # remember to move data to device!
+        return (img_stack.to(self.device), young.to(self.device)), pedar_t.to(self.device)
+
+
+@DATASET_REGISTRY.register()
+class Footprint2Pressure_SensorStack_Blend(Footprint2Pressure_Blend):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.resize = transforms.Resize((self.img_size, self.img_size))
@@ -202,7 +245,7 @@ class Footprint2Pressure_Blend_SensorStack(Footprint2Pressure_Blend):
     
 
 @DATASET_REGISTRY.register()
-class Footprint2Pressure_Blend_SensorPatch(Footprint2Pressure_Blend):
+class Footprint2Pressure_SensorPatch_Blend(Footprint2Pressure_Blend):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         

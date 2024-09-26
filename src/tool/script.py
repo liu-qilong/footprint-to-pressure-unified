@@ -313,12 +313,12 @@ class SamplingScript(BenchmarkScript):
             batch_select = self.opt.sampling.dataset[dataset_name].batch_select
 
             for batch, (x, y) in enumerate(self.dataloader_dict[dataset_name]):
-                # progress bar update
-                self._update_pdar(pdar, batch, batch_num, dataset_name)
-
                 # generate and store prediction samples of the selected batches only
                 # p.s. storage code should be implemented in the metric class
                 if batch in batch_select:
+                    # progress bar update
+                    self._update_pdar(pdar, batch, batch_num, dataset_name)
+                    
                     # forward pass
                     y_pred = self.model(x)
 

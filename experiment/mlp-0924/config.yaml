@@ -56,7 +56,7 @@ train:
             args: {}
     optimizer: 
         name: 'SGD'
-        epochs: 2
+        epochs: 50
         args:
             lr: 0.1
 benchmark:
@@ -113,7 +113,7 @@ sampling:
                 name: 'DataLoader'
                 args:
                     batch_size: 10
-                    shuffle: True
+                    shuffle: False
             batch_select: [0, ]
         wo_aug:
             name: 'Footprint2Pressure_SensorStack'
@@ -128,7 +128,7 @@ sampling:
                 name: 'DataLoader'
                 args:
                     batch_size: 10
-                    shuffle: True
+                    shuffle: False
             batch_select: [0, ]
     metric:
         MAE:
@@ -140,3 +140,6 @@ sampling:
 
 # Previously, the train & test dataset were randomly split. However, since the data are augmented, it's not appropriate to be used for testing. Therefore, I specify different dataset classes for train & test datasets explicitly. Results shown a minor accuracy degradation.
 # -- 24 Sep 2024
+
+# Finished up the whole workflow w/ benchmark & sampling scripts implemented.
+# -- 26 Sep 2024

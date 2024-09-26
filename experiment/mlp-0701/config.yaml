@@ -1,21 +1,4 @@
-train_script: 'TrainScrip_RandomSplit'
 device_select: 'auto'
-use_pretrain: False
-dataset:
-  name: 'Footprint2Pressure_SensorPatch_Blend'
-  train_ratio: 0.8
-  args:
-    footprint_wrap_folder: 'data/processed/footprint-wrap/'
-    pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
-    l_mask_path: 'data/processed/left_foot_mask.png'
-    sense_range: 600
-    stack_range: 50
-    img_size: 10
-dataloader:
-  name: 'DataLoader'
-  args:
-    batch_size: 128
-    shuffle: True
 model:
   name: 'PatchMLP_cos_emb'
   args:
@@ -23,21 +6,91 @@ model:
     pos_emb_len: 512
     young_emb_len: 128
     hidden: 1024
-loss:
-  name: 'MSELoss'
-  args: {}
-metric:
-  MAE:
-    name: 'L1Loss'
-    args: {}
-  MSE:
-    name: 'MSELoss'
-    args: {}
-optimizer: 
-  name: 'SGD'
-  epochs: 50
-  args:
-    lr: 0.1
+train:
+    script: 'TrainScript'
+    use_pretrain: False
+    dataset:
+        train:
+            name: 'Footprint2Pressure_SensorStack_Blend'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 10
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 1
+                    shuffle: True
+        test:
+            name: 'Footprint2Pressure_SensorStack'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 10
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 128
+                    shuffle: True
+    loss:
+        name: 'MSELoss'
+        args: {}
+    metric:
+        MAE:
+            name: 'L1Loss'
+            args: {}
+        MSE:
+            name: 'MSELoss'
+            args: {}
+    optimizer: 
+        name: 'SGD'
+        epochs: 50
+        args:
+            lr: 0.1
+benchmark:
+    script: 'BenchmarkScript'
+    dataset:
+        aug:
+            name: 'Footprint2Pressure_SensorStack_Blend'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 10
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 128
+                    shuffle: True
+        wo_aug:
+            name: 'Footprint2Pressure_SensorStack'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 10
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 128
+                    shuffle: True
+    metric:
+        MAE:
+            name: 'L1Loss'
+            args: {}
+        MSE:
+            name: 'MSELoss'
+            args: {}
 
 # Index & retrieve data points down to patch level, rather than subject-level as in mlp-0620/, to increase the randomness of data and avoid averaging.
 # However, this makes the training much slower, since for each batch we need to load a lot of different footprint images from the disk. This was partly solved by pre-loading & slicing all footprints at the dataset loading stage. However, it still didn't catch up with the approach that index & retrieve data points down to subject level with batch size 1.

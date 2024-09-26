@@ -1,53 +1,96 @@
-train_script: 'TrainScript_ExplicitSplit'
 device_select: 'auto'
-use_pretrain: False
-train_dataset:
-  name: 'Footprint2Pressure_SensorStack_Blend'
-  train_ratio: 0.8
-  args:
-    footprint_wrap_folder: 'data/processed/footprint-wrap/'
-    pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
-    l_mask_path: 'data/processed/left_foot_mask.png'
-    sense_range: 600
-    stack_range: 50
-    img_size: 10
-test_dataset:
-  name: 'Footprint2Pressure_SensorStack'
-  train_ratio: 0.8
-  args:
-    footprint_wrap_folder: 'data/processed/footprint-wrap/'
-    pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
-    l_mask_path: 'data/processed/left_foot_mask.png'
-    sense_range: 600
-    stack_range: 50
-    img_size: 10
-dataloader:
-  name: 'DataLoader'
-  args:
-    batch_size: 1
-    shuffle: True
 model:
-  name: 'MLP_cos_emb'
-  args:
-    img_size: 10
-    pos_emb_len: 512
-    young_emb_len: 128
-    hidden: 1024
-loss:
-  name: 'MSELoss'
-  args: {}
-metric:
-  MAE:
-    name: 'L1Loss'
-    args: {}
-  MSE:
-    name: 'MSELoss'
-    args: {}
-optimizer: 
-  name: 'SGD'
-  epochs: 50
-  args:
-    lr: 0.1
+    name: 'MLP_cos_emb'
+    args:
+        img_size: 10
+        pos_emb_len: 512
+        young_emb_len: 128
+        hidden: 1024
+train:
+    script: 'TrainScript'
+    use_pretrain: False
+    dataset:
+        train:
+            name: 'Footprint2Pressure_SensorStack_Blend'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 10
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 1
+                    shuffle: True
+        test:
+            name: 'Footprint2Pressure_SensorStack'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 10
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 128
+                    shuffle: True
+    loss:
+        name: 'MSELoss'
+        args: {}
+    metric:
+        MAE:
+            name: 'L1Loss'
+            args: {}
+        MSE:
+            name: 'MSELoss'
+            args: {}
+    optimizer: 
+        name: 'SGD'
+        epochs: 2
+        args:
+            lr: 0.1
+benchmark:
+    script: 'BenchmarkScript'
+    dataset:
+        aug:
+            name: 'Footprint2Pressure_SensorStack_Blend'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 10
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 128
+                    shuffle: True
+        wo_aug:
+            name: 'Footprint2Pressure_SensorStack'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 10
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 128
+                    shuffle: True
+    metric:
+        MAE:
+            name: 'L1Loss'
+            args: {}
+        MSE:
+            name: 'MSELoss'
+            args: {}
 
 # Previously, the train & test dataset were randomly split. However, since the data are augmented, it's not appropriate to be used for testing. Therefore, I specify different dataset classes for train & test datasets explicitly. Results shown a minor accuracy degradation.
 # -- 24 Sep 2024

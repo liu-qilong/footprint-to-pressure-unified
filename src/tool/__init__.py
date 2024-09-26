@@ -1,1 +1,1 @@
-from . import train, test
+from . import script

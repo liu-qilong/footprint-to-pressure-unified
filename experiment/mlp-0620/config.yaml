@@ -1,4 +1,4 @@
-train_script: 'TrainScrip_RandomSplit'
+train_script: 'TrainScript_RandomSplit'
 device_select: 'auto'
 use_pretrain: False
 dataset:

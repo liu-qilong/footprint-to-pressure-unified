@@ -15,7 +15,7 @@ class TrainScript():
         self.opt = opt
         
         # device select
-        if opt.device_select == 'auto':
+        if self.opt.device_select == 'auto':
             if torch.cuda.is_available():
                 self.device = 'cuda'
             if torch.backends.mps.is_available():
@@ -23,7 +23,7 @@ class TrainScript():
             else:
                 self.device = 'cpu'
         else:
-            self.device = opt.device_select
+            self.device = self.opt.device_select
 
         print(f'running on {self.device}...')
 
@@ -169,7 +169,7 @@ class BenchmarkScript():
         self.opt = opt
         
         # device select
-        if opt.device_select == 'auto':
+        if self.opt.device_select == 'auto':
             if torch.cuda.is_available():
                 self.device = 'cuda'
             if torch.backends.mps.is_available():
@@ -177,7 +177,7 @@ class BenchmarkScript():
             else:
                 self.device = 'cpu'
         else:
-            self.device = opt.device_select
+            self.device = self.opt.device_select
 
         print(f'running on {self.device}...')
 
@@ -258,3 +258,78 @@ class BenchmarkScript():
     def _log_step(self):
         # save logs
         pd.DataFrame(self.logs).to_csv(Path(self.opt.path) / 'benchmarks.csv', index=False)
+
+
+# --- sampling scripts for prediction example generation ---
+@SCRIPT_REGISTRY.register()
+class SamplingScript(BenchmarkScript):
+    def __init__(self, opt):
+        self.opt = opt
+        
+        # device select
+        if self.opt.device_select == 'auto':
+            if torch.cuda.is_available():
+                self.device = 'cuda'
+            if torch.backends.mps.is_available():
+                self.device = 'mps'
+            else:
+                self.device = 'cpu'
+        else:
+            self.device = self.opt.device_select
+
+        print(f'running on {self.device}...')
+
+        # init logs dict
+        self.logs = {
+            'dataset': [],
+            'time': [],
+        }
+
+        # init metric dict
+        # p.s. the difference from BenchmarkScript is that opt is also inputted to the metric class
+        self.metric_dict = {}
+
+        for key, value in self.opt.sampling.metric.items():
+            self.metric_dict[key] = METRIC_REGISTRY[value.name](opt=self.opt, **value.args)
+
+    def load_data(self):
+        self.dataset_dict = {}
+        self.dataloader_dict = {}
+
+        for key, value in self.opt.sampling.dataset.items():
+            self.dataset_dict[key] = DATASET_REGISTRY[value.name](device = self.device, **value.args)
+            self.dataloader_dict[key] = DATALOADER_REGISTRY[value.dataloader.name](self.dataset_dict[key], **value.dataloader.args)
+            print(f'load {key} dataset of {len(self.dataset_dict[key])} samples')
+
+        print('-'*50)
+
+    def _benchmark_step(self, pdar, dataset_name):
+        # put model in eval mode
+        self.model.eval()
+
+        # turn on inference context manager
+        with torch.inference_mode():
+            batch_num = len(self.dataloader_dict[dataset_name])
+            batch_select = self.opt.sampling.dataset[dataset_name].batch_select
+
+            for batch, (x, y) in enumerate(self.dataloader_dict[dataset_name]):
+                # progress bar update
+                self._update_pdar(pdar, batch, batch_num, dataset_name)
+
+                # generate and store prediction samples of the selected batches only
+                # p.s. storage code should be implemented in the metric class
+                if batch in batch_select:
+                    # forward pass
+                    y_pred = self.model(x)
+
+                    # metric calculation
+                    for key, metric_fn in self.metric_dict.items():
+                        metric_fn(y_pred, y, dataset_name, batch)
+
+                # break if all selected batches are processed to save time
+                if batch == batch_select[-1]:
+                    break
+
+    def _log_step(self):
+        # nothing to save
+        pass

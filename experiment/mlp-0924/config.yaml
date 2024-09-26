@@ -97,6 +97,46 @@ benchmark:
         MSE:
             name: 'MSELoss'
             args: {}
+sampling:
+    script: 'SamplingScript'
+    dataset:
+        aug:
+            name: 'Footprint2Pressure_SensorStack_Blend'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 10
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 10
+                    shuffle: True
+            batch_select: [0, ]
+        wo_aug:
+            name: 'Footprint2Pressure_SensorStack'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 10
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 10
+                    shuffle: True
+            batch_select: [0, ]
+    metric:
+        MAE:
+            name: 'PedarHeatmap'
+            args:
+                mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                export_folder: 'sample/'
 
 # Previously, the train & test dataset were randomly split. However, since the data are augmented, it's not appropriate to be used for testing. Therefore, I specify different dataset classes for train & test datasets explicitly. Results shown a minor accuracy degradation.
 # -- 24 Sep 2024

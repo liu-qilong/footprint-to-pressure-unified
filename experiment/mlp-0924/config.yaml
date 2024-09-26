@@ -42,6 +42,12 @@ train:
         name: 'MSELoss'
         args: {}
     metric:
+        mean_diff_ratio:
+            name: 'MeanDiffRatio'
+            args: {}
+        std_diff_ratio:
+            name: 'StdDiffRatio'
+            args: {}
         MAE:
             name: 'L1Loss'
             args: {}

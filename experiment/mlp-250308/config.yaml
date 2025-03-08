@@ -1,0 +1,139 @@
+device_select: 'auto'
+model:
+    name: 'MLP_cos_emb'
+    args:
+        img_size: 5
+        pos_emb_len: 512
+        young_emb_len: 512
+        hidden: 2048
+train:
+    script: 'TrainScript'
+    use_pretrain: True
+    dataset:
+        train:
+            name: 'Footprint2Pressure_SensorStack_Blend'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 5
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 1
+                    shuffle: True
+        test:
+            name: 'Footprint2Pressure_SensorStack'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 5
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 128
+                    shuffle: True
+    loss:
+        name: 'MSELoss'
+        args: {}
+    metric:
+        mean_diff_ratio:
+            name: 'MeanDiffRatio'
+            args: {}
+        std_diff_ratio:
+            name: 'StdDiffRatio'
+            args: {}
+        MAE:
+            name: 'L1Loss'
+            args: {}
+        MSE:
+            name: 'MSELoss'
+            args: {}
+    optimizer: 
+        name: 'SGD'
+        epochs: 100
+        args:
+            lr: 0.001
+benchmark:
+    script: 'BenchmarkScript'
+    dataset:
+        aug:
+            name: 'Footprint2Pressure_SensorStack_Blend'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 5
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 128
+                    shuffle: True
+        wo_aug:
+            name: 'Footprint2Pressure_SensorStack'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 5
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 128
+                    shuffle: True
+    metric:
+        MAE:
+            name: 'L1Loss'
+            args: {}
+        MSE:
+            name: 'MSELoss'
+            args: {}
+sampling:
+    script: 'SamplingScript'
+    dataset:
+        aug:
+            name: 'Footprint2Pressure_SensorStack_Blend'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 5
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 10
+                    shuffle: False
+            batch_select: [0, ]
+        wo_aug:
+            name: 'Footprint2Pressure_SensorStack'
+            args:
+                footprint_wrap_folder: 'data/processed/footprint-wrap/'
+                pedar_dynamic_path: 'data/processed/pedar_dynamic.pkl'
+                l_mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                stack_range: 50
+                img_size: 5
+            dataloader:
+                name: 'DataLoader'
+                args:
+                    batch_size: 10
+                    shuffle: False
+            batch_select: [0, ]
+    metric:
+        MAE:
+            name: 'PedarHeatmap'
+            args:
+                mask_path: 'data/processed/left_foot_mask.png'
+                sense_range: 600
+                export_folder: 'sample/'

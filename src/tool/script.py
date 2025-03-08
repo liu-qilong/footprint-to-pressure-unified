@@ -18,7 +18,7 @@ class TrainScript():
         if self.opt.device_select == 'auto':
             if torch.cuda.is_available():
                 self.device = 'cuda'
-            if torch.backends.mps.is_available():
+            elif torch.backends.mps.is_available():
                 self.device = 'mps'
             else:
                 self.device = 'cpu'
